@@ -54,9 +54,9 @@ class AppDrawer extends StatelessWidget {
             currentPath: currentPath,
           ),
           _DrawerItem(
-            iconAsset: 'assets/icons/app_size.png',
-            title: 'App Size',
-            path: appSizeRoute.path,
+            iconAsset: 'assets/icons/debugger.png',
+            title: 'Debugger',
+            path: debuggerRoute.path,
             currentPath: currentPath,
           ),
           _DrawerItem(

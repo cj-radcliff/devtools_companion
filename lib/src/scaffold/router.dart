@@ -1,7 +1,7 @@
 import 'package:go_router/go_router.dart';
 
-import '../screens/app_size/app_size_screen.dart';
 import '../screens/cpu_profiler/cpu_profiler_screen.dart';
+import '../screens/debugger/debugger_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/inspector/inspector_screen.dart';
 import '../screens/logging/logging_screen.dart';
@@ -24,8 +24,10 @@ final inspectorRoute = GoRoute(
 
 final performanceRoute = GoRoute(
   path: '/performance',
-  builder: (context, state) =>
-      const AppShell(screenName: 'Performance', screenBody: PerformanceScreen()),
+  builder: (context, state) => const AppShell(
+    screenName: 'Performance',
+    screenBody: PerformanceScreen(),
+  ),
 );
 
 final networkRoute = GoRoute(
@@ -42,14 +44,16 @@ final memoryRoute = GoRoute(
 
 final cpuProfilerRoute = GoRoute(
   path: '/cpu-profiler',
-  builder: (context, state) =>
-      const AppShell(screenName: 'CPU Profiler', screenBody: CpuProfilerScreen()),
+  builder: (context, state) => const AppShell(
+    screenName: 'CPU Profiler',
+    screenBody: CpuProfilerScreen(),
+  ),
 );
 
-final appSizeRoute = GoRoute(
-  path: '/app-size',
+final debuggerRoute = GoRoute(
+  path: '/debugger',
   builder: (context, state) =>
-      const AppShell(screenName: 'App Size', screenBody: AppSizeScreen()),
+      const AppShell(screenName: 'Debugger', screenBody: DebuggerScreen()),
 );
 
 final loggingRoute = GoRoute(
@@ -67,7 +71,7 @@ final router = GoRouter(
     networkRoute,
     memoryRoute,
     cpuProfilerRoute,
-    appSizeRoute,
+    debuggerRoute,
     loggingRoute,
   ],
 );
