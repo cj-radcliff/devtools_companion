@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
@@ -30,6 +31,15 @@ class _CpuProfilerScreenState extends State<CpuProfilerScreen> {
           task: () => Isolate.run(runFib37),
         ),
         ExpensiveTaskWidget(
+          title: 'Compute FibonacciAsync (20) x5',
+          task: () async {
+            final results = await Future.wait([
+              for (var i = 0; i < 5; i++) fibAsync20(),
+            ]);
+            return '${results.reduce((a, b) => a + b)}';
+          },
+        ),
+        ExpensiveTaskWidget(
           title: 'Create 100 Party Poppers',
           children: [PartyPopperManager(controller: _partyPopperController)],
           task: () async {
@@ -40,6 +50,15 @@ class _CpuProfilerScreenState extends State<CpuProfilerScreen> {
       ],
     );
   }
+}
+
+Future<int> fibAsync20() => _fibAsync(20);
+
+Future<int> _fibAsync(int n) async {
+  if (n <= 1) return n;
+  await Future.delayed(const Duration(milliseconds: 16));
+  final (a, b) = await (_fibAsync(n - 1), _fibAsync(n - 2)).wait;
+  return a + b;
 }
 
 String runFib37() => _fib(37).toString();
