@@ -18,7 +18,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
 
   final Future<HttpServer> _server = HttpServer.create();
 
-  final _log = StringBuffer();
+  final List<String> _logLines = [];
 
   final _logScrollController = ScrollController();
 
@@ -45,19 +45,23 @@ class _NetworkScreenState extends State<NetworkScreen> {
     return Scaffold(
       body: Column(
         children: [
+          // Request controls area. RequestTable handles its own scrolling
           Expanded(
             flex: 4,
-            child: SingleChildScrollView(
-              child: RequestTable(
-                httpClient: _httpClient,
-                logWriteln: _logWriteln,
-              ),
+            child: RequestTable(
+              httpClient: _httpClient,
+              logWriteln: _logWriteln,
             ),
           ),
+          // Log area: use ListView for better performance and auto-scroll
           Expanded(
-            child: SingleChildScrollView(
+            child: ListView.builder(
               controller: _logScrollController,
-              child: Text(_log.toString()),
+              itemCount: _logLines.length,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                child: Text(_logLines[index]),
+              ),
             ),
           ),
         ],
@@ -67,7 +71,7 @@ class _NetworkScreenState extends State<NetworkScreen> {
 
   void _logWriteln(String text) {
     setState(() {
-      _log.writeln(text);
+      _logLines.add(text);
       _needsScroll = true;
     });
   }
@@ -138,6 +142,165 @@ class _RequestTableState extends State<RequestTable> {
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    // For narrow screens, present a vertical card-based layout that's easier
+    // to consume on mobile devices. For wider screens, keep the existing
+    // multi-column table.
+    if (width < 600) {
+      return ListView.separated(
+        padding: const EdgeInsets.all(12),
+        itemCount: settingsList.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (context, idx) {
+          final settings = settingsList[idx];
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(settings.type.text, style: Theme.of(context).textTheme.bodyLarge),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 12,
+                    runSpacing: 8,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Req body'),
+                          const SizedBox(width: 6),
+                          ShadCheckbox(
+                            value: settings.requestHasBody ?? settings.requestCanHaveBody,
+                            onChanged: settings.requestHasBody == null
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      settings.requestHasBody = value;
+                                    });
+                                  },
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: 72,
+                        child: ShadInput(
+                          initialValue: settings.responseCode.toString(),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) {
+                            setState(() {
+                              settings.responseCode = int.tryParse(value) ?? 200;
+                            });
+                          },
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Resp body'),
+                          const SizedBox(width: 6),
+                          ShadCheckbox(
+                            value: settings.responseHasBody,
+                            onChanged: (value) {
+                              setState(() {
+                                settings.responseHasBody = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Completes'),
+                          const SizedBox(width: 6),
+                          ShadCheckbox(
+                            value: settings.shouldComplete,
+                            onChanged: (value) {
+                              setState(() {
+                                settings.shouldComplete = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Repeats'),
+                          const SizedBox(width: 6),
+                          ShadCheckbox(
+                            value: settings.shouldRepeat,
+                            onChanged: (value) {
+                              setState(() {
+                                settings.shouldRepeat = value;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        onPressed: () {
+                          if (settings.shouldRepeat) {
+                            if (_repeatingTimers.containsKey(settings)) {
+                              _repeatingTimers[settings]!.cancel();
+                              setState(() {
+                                _repeatingTimers.remove(settings);
+                              });
+                            } else {
+                              final timer = Timer.periodic(
+                                const Duration(seconds: 1),
+                                (timer) {
+                                  settings.action(
+                                    logWriteln: widget._logWriteln,
+                                    requestHasBody: settings.requestHasBody ?? false,
+                                    responseCode: settings.responseCode,
+                                    responseHasBody: settings.responseHasBody,
+                                    shouldComplete: settings.shouldComplete,
+                                  );
+                                },
+                              );
+                              setState(() {
+                                _repeatingTimers[settings] = timer;
+                              });
+                            }
+                          } else {
+                            settings.action(
+                              logWriteln: widget._logWriteln,
+                              requestHasBody: settings.requestHasBody ?? false,
+                              responseCode: settings.responseCode,
+                              responseHasBody: settings.responseHasBody,
+                              shouldComplete: settings.shouldComplete,
+                            );
+                          }
+                        },
+                        child: Text(
+                          settings.shouldRepeat
+                              ? (_repeatingTimers.containsKey(settings) ? 'Stop' : 'Start')
+                              : 'Go',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return Table(
       columnWidths: const {
         0: FlexColumnWidth(3), // Type
@@ -266,7 +429,16 @@ class _RequestTableState extends State<RequestTable> {
               ),
               TableCell(
                 verticalAlignment: TableCellVerticalAlignment.middle,
-                child: TextButton(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 1,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
                   onPressed: () {
                     if (settings.shouldRepeat) {
                       if (_repeatingTimers.containsKey(settings)) {
