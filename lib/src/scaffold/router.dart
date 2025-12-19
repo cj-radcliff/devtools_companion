@@ -7,6 +7,8 @@ import '../screens/inspector/inspector_screen.dart';
 import '../screens/logging/logging_screen.dart';
 import '../screens/memory/memory_screen.dart';
 import '../screens/network/network_screen.dart';
+import '../screens/performance/data/fruits.dart';
+import '../screens/performance/fruit_details.dart';
 import '../screens/performance/performance_screen.dart';
 import '../screens/timeline/timeline_screen.dart';
 import './app_shell.dart';
@@ -22,6 +24,12 @@ enum AppRoute {
     name: 'Performance',
     path: '/performance',
     iconAsset: 'assets/icons/performance.png',
+  ),
+  performanceDetails(
+    name: 'Performance Details',
+    path: '/performance/details',
+    iconAsset: 'assets/icons/performance.png',
+    showInAppDrawer: false,
   ),
   timeline(
     name: 'Timeline',
@@ -55,10 +63,12 @@ enum AppRoute {
     required this.name,
     required this.path,
     required this.iconAsset,
+    this.showInAppDrawer = true,
   });
   final String path;
   final String name;
   final String iconAsset;
+  final bool showInAppDrawer;
 
   static AppRoute fromPath(String? path) {
     if (path == null) return AppRoute.home;
@@ -86,6 +96,13 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
           return const AppShell(
             screenName: 'Performance',
             screenBody: PerformanceScreen(),
+          );
+        case AppRoute.performanceDetails:
+          final fruit = settings.arguments as Fruit;
+          return AppShell(
+            screenName: 'Performance',
+            screenBody: FruitDetailsScreen(fruit: fruit),
+            showDrawer: false,
           );
         case AppRoute.timeline:
           return const AppShell(
