@@ -39,3 +39,23 @@ flutter build apk --split-debug-info=build/symbols/ --obfuscate --target-platfor
 | Remove all bundled Roboto (use system font) | ~1 MB |
 | `--split-debug-info` + `--obfuscate` | ~1-3 MB |
 | **Total potential** | **~2-5 MB (10-25%)** |
+
+---
+
+## Applied Changes
+
+All changes committed on branch `apk-size-analysis`.
+
+| Change | File(s) |
+|---|---|
+| Removed unused `dio` dependency | `pubspec.yaml` |
+| Moved `flutter_driver` to `dev_dependencies` | `pubspec.yaml` |
+| Removed Roboto-Thin (w100) and Roboto-Black (w900) | `pubspec.yaml`, deleted TTF files |
+
+## Result
+
+| | Size |
+|---|---|
+| **Before** | 19.77 MB |
+| **After** | 19.6 MB |
+| **Saved** | ~170 KB |
