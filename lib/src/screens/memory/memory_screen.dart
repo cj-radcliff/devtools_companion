@@ -189,7 +189,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                 description: Text(
                   _isGenerating
                       ? 'Generating objects... $_generationProgress so far.'
-                      : 'Use these tools to test memory management in your application.\n'
+                      : 'Run this to create a large collection of random strings, and inspect using the DevTools memory panel\n'
                         'Currently holding onto ${_allocatedObjects.length} string objects.',
                 ),
                 child: Column(

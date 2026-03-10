@@ -1,0 +1,9 @@
+Checklist to align lib/src/screens/memory/memory_screen.dart with other screens:
+
+- Tighten formatting: trim stray blank lines (e.g., around controller fields and before build) to match other screens.
+- Simplify layout: consider a padded ListView/Scaffold body like cpu_profiler or network instead of nested Center + SingleChildScrollView + ConstrainedBox.
+- Consolidate spacing: replace duplicated Padding blocks with single, intentional spacing using shared constants (denseSpacing/defaultSpacing).
+- Clean up card description: use a single concise string without mis-indented newlines; mirror the succinct labels used elsewhere.
+- Harmonize control ordering: group primary action buttons together, then inputs, then destructive actions for consistent rhythm.
+- Prune unused imports after cleanup (e.g., dart:async if timer removed); keep import ordering consistent with lints.
+- Verify isolate/listener cleanup happens before re-runs; ensure stop button resets state like other screens� patterns.
